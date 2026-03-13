@@ -63,6 +63,22 @@ class superResNet(nn.Module):
         self.conv_output = nn.Conv2d(base_channels, num_channels, kernel_size=9, padding=4)
 
 
+    def forward(self, x):
+        input_bicubic = F.interpolate(x, scale_factor=self.scale_factor, mode="bicubic", align_corners=False)
+
+        out = self.prelu_input(self.conv_input(x))
+        residual = out
+
+
+
+        out = self.residual_blocks(out)
+
+        out = self.bn_mid(self.conv_mid(out))
+        out = out + residual
+
+
+
+
 
 
 
