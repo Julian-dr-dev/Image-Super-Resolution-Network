@@ -298,7 +298,7 @@ export default function SuperResolutionApp() {
 
       {/* Footer */}
       <div className="text-center py-8 text-gray-500 text-sm">
-        <p>Built with PyTorch + Flask + React</p>
+        <p></p>
         <p className="mt-1">Super-Resolution CNN with Encoder-Decoder Architecture</p>
       </div>
     </div>

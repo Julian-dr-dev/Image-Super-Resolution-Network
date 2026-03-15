@@ -1,3 +1,5 @@
+
+#model
 import torch 
 import torch.nn as nn
 import torch.nn.functional as F
@@ -22,9 +24,10 @@ class ResidualBlock(nn.Module):
         return out
     
 
-class UnsampleBlock(nn.Module):
+class UpsampleBlock(nn.Module):
     def __init__(self, in_channels, scale_factor):
         super(UpsampleBlock, self).__init__()
+
         self.conv = nn.Conv2d(in_channels, in_channels * (scale_factor ** 2), kernel_size=3, padding=1)
         self.pixel_shuffle = nn.PixelShuffle(scale_factor)
         self.prelu = nn.PReLU()
@@ -65,16 +68,98 @@ class superResNet(nn.Module):
 
 
     def forward(self, x):
-        
 
+        input_bicubic = F.interpolate(x, scale_factor=self.scale_factor, mode="bicubic", align_corners=False)
+
+
+        #encode:
+        out = self.prelu_input(self.conv_input(x))
         residual = out
 
 
+        out = self.residual_blocks(out)
 
-       
 
+        out = self.bn_mid(self.conv_mid(out))
+        out = out + residual 
 
+        
         #decoding:
+        out = self.upsample_blocks(out)
+
+
+        out = self.conv_output(out)
+
+        out = out + input_bicubic
+        return torch.clamp(out, 0, 1)
+    
+
+def load_model(checkpoint_path, scale_factor=2, device="cpu"):
+
+    model = SuperResNet(scale_factor=scale_factor)
+
+
+    if checkpoint_path:
+        checkpoint = torch.load(checkpoint_path, map_location=device)
+        model.load_state_dict(checkpoint["model_state_dict"])
+        print(f"[superres] ✓ Loaded checkpoint: {checkpoint_path}")
+    else:
+        print(f"[superres] ⚠ No checkpoint for {scale_factor}× — using untrained model")
+ 
+    model = model.to(device)
+    model.eval()
+    return model
+
+
+
+
+
+
+def create_model(scale_factor=2, device="cpu"):
+    """
+    Create a fresh model with Kaiming weight initialisation.
+    Used at the start of training.
+    """
+    model = SuperResNet(scale_factor=scale_factor)
+ 
+    def init_weights(m):
+        if isinstance(m, nn.Conv2d):
+            nn.init.kaiming_normal_(m.weight, mode="fan_out", nonlinearity="relu")
+            if m.bias is not None:
+                nn.init.constant_(m.bias, 0)
+        elif isinstance(m, nn.BatchNorm2d):
+            nn.init.constant_(m.weight, 1)
+            nn.init.constant_(m.bias, 0)
+ 
+    model.apply(init_weights)
+    model = model.to(device)
+    return model
+
+
+
+if __name__ == "__main__":
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"Using device: {device}")
+ 
+    model = create_model(scale_factor=2, device=device)
+ 
+    total_params     = sum(p.numel() for p in model.parameters())
+    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    print(f"\nTotal parameters:     {total_params:,}")
+    print(f"Trainable parameters: {trainable_params:,}")
+ 
+    # Simulate a batch of 4 low-res 32×32 images
+    low_res = torch.randn(4, 3, 32, 32).to(device)
+    print(f"\nInput shape:  {low_res.shape}")
+ 
+    with torch.no_grad():
+        high_res = model(low_res)
+ 
+    print(f"Output shape: {high_res.shape}")   # expect (4, 3, 64, 64) for 2×
+    print(f"\nModel is ready for training!")
+ 
+
+
         
 
 
