@@ -57,25 +57,25 @@ class superResNet(nn.Module):
 
         num_upsample_blocks = int(torch.log2(torch.tensor(scale_factor)).item())
         self.upsample_blocks = nn.Sequential(
-            *[UpsampleBlock(base_channels, 2) for _ in range(num_upsample_blocks)]
+            *[UnsampleBlock(base_channels, 2) for _ in range(num_upsample_blocks)]
         )
+
 
         self.conv_output = nn.Conv2d(base_channels, num_channels, kernel_size=9, padding=4)
 
 
     def forward(self, x):
-        input_bicubic = F.interpolate(x, scale_factor=self.scale_factor, mode="bicubic", align_corners=False)
+        
 
-        out = self.prelu_input(self.conv_input(x))
         residual = out
 
 
 
-        out = self.residual_blocks(out)
+       
 
-        out = self.bn_mid(self.conv_mid(out))
-        out = out + residual
 
+        #decoding:
+        
 
 
 
