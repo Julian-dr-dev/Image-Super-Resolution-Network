@@ -45,3 +45,39 @@ class Config:
     device      = "cuda" if torch.cuda.is_available() else "cpu"
 
 cfg = Config()
+
+
+
+class SuperResDataset(Dataset):
+
+
+    EXTENSIONS = {".png", ".jpg", ".jpeg", ".bmp", ".webp"}
+
+    def __init__(self, image_dir, scale_factor, patch_size, augment=True):
+        self.scale_factor = scale_factor
+        self.patch_size = patch_size
+        self.augment = augment
+        self.lr_size = patch_size 
+
+
+        self.paths = [
+            os.path.join(image_dir, f)
+            for f in sorted(os.listdr(image_dir))
+            if os.path.splitext(f)[1].lower() in self.EXTENSIONS
+
+
+        ]
+        if not self.paths:
+            raise FileNotFoundError(f"No images found in {image_dir}")
+        print(f"  Found {len(self.paths)} images in {image_dir}")
+
+
+
+
+    def __len__(self):
+        return len(self.paths)
+ 
+    def __getitem__(self, idx):
+        img = Image.open(self.paths[idx]).convert("RGB")
+ 
+        
