@@ -176,6 +176,20 @@ def plot_curves(train_losses, val_losses, val_psnrs, out_dir):
 
     #training an epoch:
 
+    def train_epoch(model, loader, optimizer, mse_loss, perceptual_loss):
+        model.train()
+        total_loss
+
+        for lr_imgs, hr_imgs in tqdm(loader, desc=" train", leave=False):
+            lr_imgs = lr_imgs.to(cfg.device)
+            hr_imgs = hr_imgs.to(cfg.device)
+
+
+            sr_imgs = model(lr_imgs)
+
+            
+
+
 
 
 
