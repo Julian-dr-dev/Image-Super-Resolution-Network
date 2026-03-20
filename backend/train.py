@@ -187,7 +187,21 @@ def plot_curves(train_losses, val_losses, val_psnrs, out_dir):
 
             sr_imgs = model(lr_imgs)
 
-            
+            loss = cfg.mse_weight * mse_loss(sr_imgs, hr_imgs)
+            if cfg.perceptual_weight > 0 and perceptual_loss is not None:
+                loss += cfg.perceptual_weight * perceptual_loss(sr_imgs, hr_imgs)
+
+
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+            total_loss += loss.item()
+
+        return total_loss / len(loader)
+    
+
+
 
 
 
