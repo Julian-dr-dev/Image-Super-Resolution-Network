@@ -199,20 +199,34 @@ def plot_curves(train_losses, val_losses, val_psnrs, out_dir):
             total_loss += loss.item()
 
         return total_loss / len(loader)
+
     
 
 
+     #validiating an epoch:
 
 
+    def val_epoch(model, loader, mse_loss):
+        model.eval()
+        total_loss = 0.0
+        total_psnr = 0.0
+
+        with torch.no_grad:
+            for lr_imgs, hr_imgs in tqdm(loader, desc=" val ", leave=False):
+                
+                lr_imgs = lr_imgs.to(cfg.device)
+                hr_imgs = hr_imgs.to(cfg.device)
+
+                sr_imgs = model(lr_imgs)
+
+                total_loss += mse_loss(sr_imgs, hr_imgs).item()
+                total_psnr += psnr(sr_imgs, hr_imgs)
+                
+                
+        
+    
 
 
-
-
-
-
-
-
-    #validiating an epoch:
 
 
 
@@ -307,7 +321,7 @@ def main():
                 os.path.join(cfg.checkpoint_dir, f"best_{cfg.scale_factor}x.pth")
             )
  
-        # Periodic checkpoint
+        # frequent checkpoint
         if (epoch + 1) % cfg.save_every == 0:
             save_checkpoint(
                 model, optimizer, epoch, val_loss,
@@ -315,7 +329,7 @@ def main():
                              f"epoch_{epoch+1}_{cfg.scale_factor}x.pth")
             )
  
-        # Latest checkpoint (for resuming)
+        # Last checkpoint -- to resume
         save_checkpoint(model, optimizer, epoch, val_loss, latest_ckpt)
  
     print(f"\nTraining complete. Best PSNR: {best_psnr:.2f} dB")
