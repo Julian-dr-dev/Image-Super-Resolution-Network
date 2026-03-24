@@ -57,12 +57,12 @@ class SuperResDataset(Dataset):
         self.scale_factor = scale_factor
         self.patch_size = patch_size
         self.augment = augment
-        self.lr_size = patch_size 
+        self.lr_size = patch_size //scale_factor 
 
 
         self.paths = [
             os.path.join(image_dir, f)
-            for f in sorted(os.listdr(image_dir))
+            for f in sorted(os.listdir(image_dir))
             if os.path.splitext(f)[1].lower() in self.EXTENSIONS
 
 
@@ -130,7 +130,7 @@ def pnsr(pred, target, max_val=1.0):
 
 #checkpoint helper methods:
 
-def save_checkpoints(model, optimizer, epoch, loss, path):
+def save_checkpoint(model, optimizer, epoch, loss, path):
     os.makedirs(os.path.dirname(path), exist_ok=True)
 
 
@@ -144,7 +144,7 @@ def save_checkpoints(model, optimizer, epoch, loss, path):
 
 
 def load_checkpoint(path, model, optimizer=None):
-    ckpt = torch.load(path, mp_location=cfg.device)
+    ckpt = torch.load(path, map_location=cfg.device)
     model.load_state_dict(ckpt["model_state_dict"])
 
     if optimizer:
@@ -176,29 +176,29 @@ def plot_curves(train_losses, val_losses, val_psnrs, out_dir):
 
     #training an epoch:
 
-    def train_epoch(model, loader, optimizer, mse_loss, perceptual_loss):
-        model.train()
-        total_loss
+def train_epoch(model, loader, optimizer, mse_loss, perceptual_loss):
+    model.train()
+    total_loss = 0.0
 
-        for lr_imgs, hr_imgs in tqdm(loader, desc=" train", leave=False):
-            lr_imgs = lr_imgs.to(cfg.device)
-            hr_imgs = hr_imgs.to(cfg.device)
-
-
-            sr_imgs = model(lr_imgs)
-
-            loss = cfg.mse_weight * mse_loss(sr_imgs, hr_imgs)
-            if cfg.perceptual_weight > 0 and perceptual_loss is not None:
-                loss += cfg.perceptual_weight * perceptual_loss(sr_imgs, hr_imgs)
+    for lr_imgs, hr_imgs in tqdm(loader, desc=" train", leave=False):
+        lr_imgs = lr_imgs.to(cfg.device)
+        hr_imgs = hr_imgs.to(cfg.device)
 
 
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
+        sr_imgs = model(lr_imgs)
 
-            total_loss += loss.item()
+        loss = cfg.mse_weight * mse_loss(sr_imgs, hr_imgs)
+        if cfg.perceptual_weight > 0 and perceptual_loss is not None:
+            loss += cfg.perceptual_weight * perceptual_loss(sr_imgs, hr_imgs)
 
-        return total_loss / len(loader)
+
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+        total_loss += loss.item()
+
+    return total_loss / len(loader)
 
     
 
@@ -206,22 +206,24 @@ def plot_curves(train_losses, val_losses, val_psnrs, out_dir):
      #validiating an epoch:
 
 
-    def val_epoch(model, loader, mse_loss):
-        model.eval()
-        total_loss = 0.0
-        total_psnr = 0.0
+def val_epoch(model, loader, mse_loss):
+    model.eval()
+    total_loss = 0.0
+    total_psnr = 0.0
 
-        with torch.no_grad:
-            for lr_imgs, hr_imgs in tqdm(loader, desc=" val ", leave=False):
+    with torch.no_grad():
+        for lr_imgs, hr_imgs in tqdm(loader, desc=" val ", leave=False):
                 
-                lr_imgs = lr_imgs.to(cfg.device)
-                hr_imgs = hr_imgs.to(cfg.device)
+            lr_imgs = lr_imgs.to(cfg.device)
+            hr_imgs = hr_imgs.to(cfg.device)
 
-                sr_imgs = model(lr_imgs)
+            sr_imgs = model(lr_imgs)
 
-                total_loss += mse_loss(sr_imgs, hr_imgs).item()
-                total_psnr += psnr(sr_imgs, hr_imgs)
-                
+            total_loss += mse_loss(sr_imgs, hr_imgs).item()
+            total_psnr += pnsr(sr_imgs, hr_imgs)
+
+    n = len(loader)
+    return total_loss / n, total_psnr / n
                 
         
     
