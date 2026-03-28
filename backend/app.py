@@ -51,26 +51,7 @@ def health():
  
 @app.route("/api/upscale", methods=["POST"])
 def upscale():
-    """
-    Upscale an image using the super-resolution model.
- 
-    Request JSON:
-        {
-            "image": "<base64-encoded image bytes>",
-            "scale_factor": 2          // 2 or 4
-        }
- 
-    Response JSON (success):
-        {
-            "upscaled": "<base64-encoded PNG>",
-            "original_size": [w, h],
-            "upscaled_size":  [w, h],
-            "scale_factor": 2
-        }
- 
-    Response JSON (error):
-        { "error": "<message>" }
-    """
+    
     data = request.get_json(force=True, silent=True)
  
     if not data:
