@@ -1,13 +1,10 @@
 /**
- * SuperResApp.jsx  —  frontend/src/SuperResApp.jsx
- * Minimal, clean aesthetic — light, airy, precise
+ * SuperResApp.jsx — frontend/src/SuperResApp.jsx
+ * Ultra-minimal, refined aesthetic
  */
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import {
-  Upload, Zap, Download, ImageIcon,
-  AlertCircle, Loader, ScanSearch,
-} from "lucide-react";
+import { Upload, Zap, Download, AlertCircle, Loader } from "lucide-react";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:5000/api";
 
@@ -27,137 +24,72 @@ function fmtBytes(b) {
 }
 
 const GLOBAL_CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Syne:wght@400;600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap');
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg:        #f8f8f6;
-    --surface:   #ffffff;
-    --border:    #e4e4e0;
-    --border2:   #d0d0ca;
-    --accent:    #1a1a1a;
-    --accent2:   #4a4a4a;
-    --muted:     #9a9a94;
-    --tag:       #f0f0ec;
-    --sans:      'Inter', sans-serif;
-    --display:   'Syne', sans-serif;
-    --radius:    8px;
+    --bg:      #f5f5f3;
+    --surface: #ffffff;
+    --border:  #e0e0dc;
+    --accent:  #111111;
+    --muted:   #aaaaaa;
+    --subtle:  #f0f0ee;
+    --sans:    'Inter', sans-serif;
+    --radius:  6px;
   }
 
   :root.dark {
-    --bg:        #1a1a1a;
-    --surface:   #242424;
-    --border:    #333333;
-    --border2:   #404040;
-    --accent:    #eeeeee;
-    --accent2:   #aaaaaa;
-    --muted:     #666666;
-    --tag:       #2a2a2a;
+    --bg:      #141414;
+    --surface: #1c1c1c;
+    --border:  #2a2a2a;
+    --accent:  #efefef;
+    --muted:   #555555;
+    --subtle:  #222222;
   }
+
   html, body, #root {
     height: 100%;
     background: var(--bg);
     color: var(--accent);
     font-family: var(--sans);
-    font-size: 14px;
-    line-height: 1.6;
+    font-size: 13px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
   }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .fade { animation: fadeIn 0.3s ease both; }
 
   .divider-handle {
     position: absolute;
     top: 0; bottom: 0;
-    width: 2px;
-    background: var(--accent);
+    width: 1px;
+    background: #fff;
     cursor: col-resize;
     z-index: 10;
+    opacity: 0.7;
   }
-  .divider-handle::before {
-    content: '◁ ▷';
+
+  .divider-handle::after {
+    content: '';
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: var(--accent);
-    color: #fff;
-    font-size: 9px;
-    padding: 4px 6px;
-    border-radius: 4px;
-    white-space: nowrap;
-    letter-spacing: 0.08em;
-    font-family: var(--sans);
-  }
-
-  @keyframes spin {
-    from { transform: rotate(0deg); }
-    to   { transform: rotate(360deg); }
-  }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(8px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  .fade-up { animation: fadeUp 0.35s ease both; }
-
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    padding: 9px 18px;
-    border: 1px solid var(--border2);
-    border-radius: var(--radius);
-    background: var(--surface);
-    color: var(--accent);
-    font-family: var(--sans);
-    font-size: 13px;
-    font-weight: 400;
-    cursor: pointer;
-    transition: border-color 0.15s, background 0.15s;
-  }
-  .btn:hover:not(:disabled) {
-    border-color: var(--accent);
-    background: var(--tag);
-  }
-  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
-
-  .btn-primary {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #fff;
-    font-weight: 500;
-  }
-  .btn-primary:hover:not(:disabled) {
-    background: #333;
-    border-color: #333;
-  }
-
-  .scale-btn {
-    padding: 6px 16px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    background: transparent;
-    color: var(--muted);
-    font-family: var(--sans);
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .scale-btn.active {
-    border-color: var(--accent);
-    color: var(--accent);
-    background: var(--tag);
-  }
-  .scale-btn:hover:not(.active) {
-    color: var(--accent2);
-    border-color: var(--border2);
-  }
-
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 28px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.1);
   }
 `;
 
@@ -187,14 +119,14 @@ function DropZone({ onFile, disabled }) {
       onDragLeave={() => setDragging(false)}
       onDrop={(e) => { e.preventDefault(); setDragging(false); handleFile(e.dataTransfer.files[0]); }}
       style={{
-        border: `1.5px dashed ${dragging ? "var(--accent)" : "var(--border2)"}`,
-        borderRadius: "10px",
-        padding: "44px 24px",
+        border: `1px dashed ${dragging ? "var(--accent)" : "var(--border)"}`,
+        borderRadius: "var(--radius)",
+        padding: "40px 20px",
         textAlign: "center",
         cursor: disabled ? "not-allowed" : "pointer",
-        background: dragging ? "var(--tag)" : "var(--bg)",
-        transition: "border-color 0.15s, background 0.15s",
-        opacity: disabled ? 0.5 : 1,
+        background: dragging ? "var(--subtle)" : "transparent",
+        transition: "all 0.15s",
+        opacity: disabled ? 0.4 : 1,
       }}
     >
       <input
@@ -204,14 +136,22 @@ function DropZone({ onFile, disabled }) {
         style={{ display: "none" }}
         onChange={(e) => handleFile(e.target.files[0])}
       />
-      <Upload size={24} color="var(--muted)" style={{ marginBottom: 12 }} />
-      <div style={{ color: "var(--accent2)", marginBottom: 4, fontSize: 13 }}>
-        Drop an image here or{" "}
-        <span style={{ color: "var(--accent)", textDecoration: "underline", textUnderlineOffset: 3 }}>
+      <Upload
+        size={18}
+        color="var(--muted)"
+        style={{ marginBottom: 10, display: "block", margin: "0 auto 10px" }}
+      />
+      <div style={{ color: "var(--muted)", fontSize: 12 }}>
+        Drop image or{" "}
+        <span style={{
+          color: "var(--accent)",
+          borderBottom: "1px solid var(--accent)",
+          paddingBottom: 1,
+          cursor: "pointer",
+        }}>
           browse
         </span>
       </div>
-      <div style={{ color: "var(--muted)", fontSize: 12 }}>PNG, JPG, WEBP</div>
     </div>
   );
 }
@@ -224,8 +164,7 @@ function ComparisonSlider({ originalSrc, upscaledSrc }) {
   const calcPos = useCallback((clientX) => {
     const rect = containerRef.current?.getBoundingClientRect();
     if (!rect) return;
-    const pct = ((clientX - rect.left) / rect.width) * 100;
-    setPos(Math.max(2, Math.min(98, pct)));
+    setPos(Math.max(2, Math.min(98, ((clientX - rect.left) / rect.width) * 100)));
   }, []);
 
   useEffect(() => {
@@ -249,19 +188,18 @@ function ComparisonSlider({ originalSrc, upscaledSrc }) {
       style={{
         position: "relative",
         width: "100%",
-        borderRadius: 10,
+        borderRadius: "var(--radius)",
         overflow: "hidden",
         userSelect: "none",
         lineHeight: 0,
-        border: "1px solid var(--border)",
-        background: "var(--tag)",
-        maxHeight: 520,
+        background: "#000",
+        maxHeight: 500,
       }}
     >
       <img
         src={upscaledSrc}
         alt="Upscaled"
-        style={{ width: "100%", display: "block", maxHeight: 520, objectFit: "contain" }}
+        style={{ width: "100%", display: "block", maxHeight: 500, objectFit: "contain" }}
       />
       <div style={{ position: "absolute", inset: 0, clipPath: `inset(0 ${100 - pos}% 0 0)` }}>
         <img
@@ -270,32 +208,23 @@ function ComparisonSlider({ originalSrc, upscaledSrc }) {
           style={{ width: "100%", height: "100%", objectFit: "contain" }}
         />
       </div>
-
-      {/* Labels */}
       <div style={{
-        position: "absolute", top: 10, left: 12,
-        background: "rgba(255,255,255,0.85)",
-        color: "var(--muted)",
-        fontSize: 10, padding: "2px 8px", borderRadius: 4,
-        fontFamily: "var(--sans)", letterSpacing: "0.08em",
-        fontWeight: 500,
+        position: "absolute", bottom: 10, left: 12,
+        color: "rgba(255,255,255,0.5)",
+        fontSize: 9, letterSpacing: "0.1em",
       }}>
-        ORIGINAL
+        BEFORE
       </div>
       <div style={{
-        position: "absolute", top: 10, right: 12,
-        background: "rgba(26,26,26,0.8)",
-        color: "#fff",
-        fontSize: 10, padding: "2px 8px", borderRadius: 4,
-        fontFamily: "var(--sans)", letterSpacing: "0.08em",
-        fontWeight: 500,
+        position: "absolute", bottom: 10, right: 12,
+        color: "rgba(255,255,255,0.5)",
+        fontSize: 9, letterSpacing: "0.1em",
       }}>
-        UPSCALED
+        AFTER
       </div>
-
       <div
         className="divider-handle"
-        style={{ left: `${pos}%`, transform: "translateX(-50%)" }}
+        style={{ left: `${pos}%` }}
         onMouseDown={(e) => { e.preventDefault(); dragging.current = true; }}
         onTouchStart={() => { dragging.current = true; }}
       />
@@ -311,7 +240,11 @@ export default function SuperResApp() {
   const [loading, setLoading]         = useState(false);
   const [error, setError]             = useState(null);
   const [meta, setMeta]               = useState(null);
-  const [darkMode, setDarkMode] = useState(false);
+  const [dark, setDark]               = useState(false);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", dark);
+  }, [dark]);
 
   const handleFile = useCallback((file) => {
     setImageFile(file);
@@ -322,10 +255,6 @@ export default function SuperResApp() {
   }, []);
 
   useEffect(() => () => previewSrc && URL.revokeObjectURL(previewSrc), [previewSrc]);
-
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", darkMode)
-  }, [darkMode])
 
   const handleUpscale = async () => {
     if (!imageFile) return;
@@ -358,91 +287,140 @@ export default function SuperResApp() {
     a.click();
   };
 
+  const btn = (onClick, children, primary = false, disabled = false) => (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 6,
+        padding: "7px 14px",
+        border: `1px solid ${primary ? "var(--accent)" : "var(--border)"}`,
+        borderRadius: "var(--radius)",
+        background: primary ? "var(--accent)" : "transparent",
+        color: primary ? "var(--bg)" : "var(--accent)",
+        fontSize: 12,
+        fontFamily: "var(--sans)",
+        fontWeight: primary ? 500 : 400,
+        cursor: disabled ? "not-allowed" : "pointer",
+        opacity: disabled ? 0.35 : 1,
+        transition: "opacity 0.15s",
+      }}
+    >
+      {children}
+    </button>
+  );
+
   return (
     <>
       <GlobalStyle />
       <div style={{
         minHeight: "100vh",
-        maxWidth: 820,
+        maxWidth: 720,
         margin: "0 auto",
-        padding: "56px 24px 80px",
+        padding: "60px 24px 80px",
         display: "flex",
         flexDirection: "column",
-        gap: 32,
+        gap: 28,
       }}>
 
         {/* Header */}
-        <header className="fade-up" style={{ marginBottom: 4 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
-            <ScanSearch size={20} color="var(--muted)" />
-            <h1 style={{
-              fontFamily: "var(--display)",
-              fontWeight: 600,
-              fontSize: "clamp(1.4rem, 3vw, 1.9rem)",
-              letterSpacing: "-0.01em",
+        <div className="fade" style={{
+          display: "flex",
+          alignItems: "flex-end",
+          justifyContent: "space-between",
+          paddingBottom: 20,
+          borderBottom: "1px solid var(--border)",
+        }}>
+          <div>
+            <div style={{
+              fontSize: 18,
+              fontWeight: 500,
+              letterSpacing: "-0.02em",
               color: "var(--accent)",
+              marginBottom: 2,
             }}>
               Super Resolution
-            </h1>
+            </div>
+            <div style={{ color: "var(--muted)", fontSize: 11, letterSpacing: "0.03em" }}>
+              AI image upscaling · 2× or 4×
+            </div>
           </div>
-          <p style={{ color: "var(--muted)", fontSize: 12, letterSpacing: "0.04em" }}>
-            CNN-powered image upscaling — 2× or 4×
-          </p>
-          <div style={{ marginTop: 20, height: 1, background: "var(--border)" }} />
-          <div style={{marginTop: 16 , display: "flex", justifyContent: "flex-end"}}>
-            <button
-              className="btn"
-              onClick={() => setDarkMode(!darkMode)}
-              style={{ fontSize: 11, padding: "5px 12px", letterSpacing: "0.05em" }}
-              >
-            {darkMode ? "Light mode" : "Dark mode"}
-            </button>
+          <button
+            onClick={() => setDark(!dark)}
+            style={{
+              background: "none",
+              border: "none",
+              color: "var(--muted)",
+              fontSize: 11,
+              cursor: "pointer",
+              letterSpacing: "0.04em",
+              padding: "4px 0",
+            }}
+          >
+            {dark ? "light" : "dark"}
+          </button>
+        </div>
 
-          </div>
-        </header>
-
-        {/* Upload card */}
-        <section className="card fade-up" style={{ animationDelay: "0.05s" }}>
+        {/* Upload area */}
+        <div className="fade" style={{
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
+          borderRadius: "var(--radius)",
+          padding: 20,
+          display: "flex",
+          flexDirection: "column",
+          gap: 14,
+        }}>
           <DropZone onFile={handleFile} disabled={loading} />
 
-          {/* File info */}
           {imageFile && (
             <div style={{
               display: "flex",
               alignItems: "center",
-              gap: 8,
-              marginTop: 14,
-              padding: "8px 12px",
-              background: "var(--tag)",
+              justifyContent: "space-between",
+              padding: "6px 10px",
+              background: "var(--subtle)",
               borderRadius: "var(--radius)",
-              border: "1px solid var(--border)",
+              fontSize: 12,
             }}>
-              <ImageIcon size={14} color="var(--muted)" />
-              <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: 13 }}>
+              <span style={{
+                color: "var(--accent)",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                maxWidth: "70%",
+              }}>
                 {imageFile.name}
               </span>
-              <span style={{ color: "var(--muted)", fontSize: 12 }}>
-                {fmtBytes(imageFile.size)}
-              </span>
+              <span style={{ color: "var(--muted)" }}>{fmtBytes(imageFile.size)}</span>
             </div>
           )}
 
-          {/* Controls */}
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 12,
-            marginTop: 16,
-            flexWrap: "wrap",
-          }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ color: "var(--muted)", fontSize: 11, letterSpacing: "0.06em" }}>SCALE</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            <div style={{
+              display: "flex",
+              border: "1px solid var(--border)",
+              borderRadius: "var(--radius)",
+              overflow: "hidden",
+            }}>
               {[2, 4].map((s) => (
                 <button
                   key={s}
-                  className={`scale-btn ${scaleFactor === s ? "active" : ""}`}
                   onClick={() => setScaleFactor(s)}
                   disabled={loading}
+                  style={{
+                    padding: "5px 14px",
+                    border: "none",
+                    borderRight: s === 2 ? "1px solid var(--border)" : "none",
+                    background: scaleFactor === s ? "var(--accent)" : "transparent",
+                    color: scaleFactor === s ? "var(--bg)" : "var(--muted)",
+                    fontSize: 12,
+                    fontFamily: "var(--sans)",
+                    cursor: loading ? "not-allowed" : "pointer",
+                    transition: "all 0.15s",
+                  }}
                 >
                   {s}×
                 </button>
@@ -451,69 +429,49 @@ export default function SuperResApp() {
 
             <div style={{ flex: 1 }} />
 
-            <button
-              className="btn btn-primary"
-              onClick={handleUpscale}
-              disabled={!imageFile || loading}
-            >
-              {loading ? (
-                <>
-                  <Loader size={13} style={{ animation: "spin 1s linear infinite" }} />
-                  Processing
-                </>
-              ) : (
-                <>
-                  <Zap size={13} />
-                  Upscale {scaleFactor}×
-                </>
-              )}
-            </button>
-
-            {upscaledSrc && (
-              <button className="btn" onClick={handleDownload}>
-                <Download size={13} />
-                Download
-              </button>
+            {btn(handleUpscale,
+              loading
+                ? <><Loader size={12} style={{ animation: "spin 1s linear infinite" }} /> Processing</>
+                : <><Zap size={12} /> Upscale {scaleFactor}×</>,
+              true,
+              !imageFile || loading
             )}
+
+            {upscaledSrc && btn(handleDownload, <><Download size={12} /> Save</>)}
           </div>
 
-          {/* Error */}
           {error && (
             <div style={{
               display: "flex",
               alignItems: "center",
-              gap: 8,
-              marginTop: 14,
-              padding: "9px 12px",
-              background: "#fff5f5",
-              border: "1px solid #f0c0c0",
+              gap: 7,
+              padding: "8px 10px",
+              background: "var(--subtle)",
               borderRadius: "var(--radius)",
-              color: "#c05050",
-              fontSize: 13,
+              color: "#d05050",
+              fontSize: 12,
             }}>
-              <AlertCircle size={14} />
+              <AlertCircle size={13} />
               {error}
             </div>
           )}
-        </section>
+        </div>
 
-        {/* Comparison viewer */}
+        {/* Image viewer */}
         {(previewSrc || upscaledSrc) && (
-          <section className="fade-up" style={{ animationDelay: "0.1s" }}>
+          <div className="fade">
             <div style={{
               display: "flex",
-              alignItems: "center",
               justifyContent: "space-between",
-              marginBottom: 12,
+              alignItems: "center",
+              marginBottom: 8,
             }}>
-              <span style={{ color: "var(--muted)", fontSize: 11, letterSpacing: "0.06em" }}>
+              <span style={{ color: "var(--muted)", fontSize: 10, letterSpacing: "0.06em" }}>
                 {upscaledSrc ? "DRAG TO COMPARE" : "PREVIEW"}
               </span>
               {meta && (
-                <span style={{ color: "var(--muted)", fontSize: 11 }}>
-                  {meta.original_size[0]}×{meta.original_size[1]}
-                  {" → "}
-                  {meta.upscaled_size[0]}×{meta.upscaled_size[1]} px
+                <span style={{ color: "var(--muted)", fontSize: 10 }}>
+                  {meta.original_size[0]}×{meta.original_size[1]} → {meta.upscaled_size[0]}×{meta.upscaled_size[1]}
                 </span>
               )}
             </div>
@@ -522,46 +480,42 @@ export default function SuperResApp() {
               <ComparisonSlider originalSrc={previewSrc} upscaledSrc={upscaledSrc} />
             ) : (
               <div style={{
-                border: "1px solid var(--border)",
-                borderRadius: 10,
+                borderRadius: "var(--radius)",
                 overflow: "hidden",
-                background: "var(--tag)",
+                background: "#000",
                 textAlign: "center",
               }}>
                 <img
                   src={previewSrc}
                   alt="Preview"
-                  style={{ maxWidth: "100%", maxHeight: 480, objectFit: "contain", display: "block", margin: "0 auto" }}
+                  style={{ maxWidth: "100%", maxHeight: 460, objectFit: "contain", display: "block", margin: "0 auto" }}
                 />
               </div>
             )}
-          </section>
+          </div>
         )}
 
-        {/* Empty state */}
         {!previewSrc && !upscaledSrc && (
-          <div style={{
-            textAlign: "center",
-            color: "var(--muted)",
-            fontSize: 13,
-            padding: "32px 0",
-          }}>
-            Upload an image to get started
+          <div style={{ textAlign: "center", color: "var(--muted)", fontSize: 12, padding: "20px 0" }}>
+            Upload an image to begin
           </div>
         )}
 
         {/* Footer */}
-        <footer style={{
+        <div style={{
           marginTop: "auto",
-          textAlign: "center",
-          color: "var(--muted)",
-          fontSize: 11,
-          letterSpacing: "0.06em",
           paddingTop: 20,
           borderTop: "1px solid var(--border)",
+          display: "flex",
+          justifyContent: "space-between",
+          color: "var(--muted)",
+          fontSize: 10,
+          letterSpacing: "0.05em",
         }}>
-          SRGAN-STYLE CNN · PYTORCH · FLASK
-        </footer>
+          <span>SUPER RESOLUTION</span>
+          <span>EDSR · FLASK · REACT</span>
+        </div>
+
       </div>
     </>
   );
